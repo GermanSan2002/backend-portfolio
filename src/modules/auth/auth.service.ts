@@ -1,33 +1,46 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ErrorManager } from 'src/utils/error.manager';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { UsersService } from '../users/users.service';
-import { LoginUserDto } from './dto/login-auth.dto';
+import { Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+const saltRounds = parseInt(process.env.HASH_SALT_ROUNDS || '10', 10);
+const jwtSecret = process.env.JWT_SECRET;
+
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET is not defined in the environment variables');
+}
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @Inject(forwardRef(() => UsersService))
-    private userService: UsersService,
-  ) {}
-
-  async login(loginUserDto: LoginUserDto) {
-    try {
-      return await this.userService.login(loginUserDto);
-    } catch (error) {
-      throw ErrorManager.createSignatureError(error.message);
-    }
+  async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, saltRounds);
   }
 
-  async register(createUserDto: CreateUserDto) {
-    try {
-      return await this.userService.createUser(createUserDto);
-    } catch (error) {
-      throw ErrorManager.createSignatureError(error.message);
-    }
+  async comparePassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(password, hashedPassword);
   }
 
-  async logout() {
-    return { message: 'Sesión cerrada correctamente' };
+  generateToken(userId: string): string {
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    return jwt.sign({ userId }, jwtSecret, { expiresIn: '1h' });
+  }
+
+  verifyToken(token: string): { userId: string } {
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    try {
+      const decodedToken = jwt.verify(token, jwtSecret);
+      return decodedToken as { userId: string };
+    } catch (err) {
+      throw new Error('Invalid token');
+    }
   }
 }

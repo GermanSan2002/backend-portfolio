@@ -4,9 +4,11 @@ import { AppService } from './app.service';
 import { DataSourceConfig } from './database/data.source';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from './modules/users/entities/user.entity';
-import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { User } from './modules/user/entities/user.entity';
+import { Operation } from './modules/user/entities/operation.entity';
+import { MailModule } from './modules/mail/mail.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -15,9 +17,10 @@ import { AuthModule } from './modules/auth/auth.module';
       envFilePath: '.env', // Especifica la ruta al archivo .env
     }),
     TypeOrmModule.forRoot({ ...DataSourceConfig }),
-    TypeOrmModule.forFeature([UserEntity]),
-    UsersModule,
+    TypeOrmModule.forFeature([User, Operation]),
+    UserModule,
     AuthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
