@@ -9,6 +9,8 @@ import { User } from './modules/user/entities/user.entity';
 import { Operation } from './modules/user/entities/operation.entity';
 import { MailModule } from './modules/mail/mail.module';
 import { UserModule } from './modules/user/user.module';
+import { ExperiencesModule } from './modules/experiences/experiences.module';
+import { Experience } from './modules/experiences/entity/experience.entity';
 
 @Module({
   imports: [
@@ -17,10 +19,11 @@ import { UserModule } from './modules/user/user.module';
       envFilePath: '.env', // Especifica la ruta al archivo .env
     }),
     TypeOrmModule.forRoot({ ...DataSourceConfig }),
-    TypeOrmModule.forFeature([User, Operation]),
+    TypeOrmModule.forFeature([User, Operation, Experience]),
     UserModule,
     AuthModule,
     MailModule,
+    ExperiencesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,6 +2,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Operation } from 'src/modules/user/entities/operation.entity';
+import { Experience } from 'src/modules/experiences/entity/experience.entity';
 
 ConfigModule.forRoot({
   envFilePath: ['.env'],
@@ -16,7 +17,7 @@ export const DataSourceConfig: DataSourceOptions = {
   username: configService.get<string>('DB_USERNAME'),
   password: configService.get<string>('DB_PASSWORD'),
   database: configService.get<string>('DB_DATABASE'),
-  entities: [User, Operation],
+  entities: [User, Operation, Experience],
   synchronize: true,
 };
 
