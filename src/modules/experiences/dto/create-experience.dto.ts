@@ -1,4 +1,4 @@
-import { IsString, IsArray } from 'class-validator';
+import { IsString, IsArray, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateExperienceDto {
@@ -25,9 +25,10 @@ export class CreateExperienceDto {
   @IsArray()
   readonly experiences: string[];
 
-  @ApiProperty({ example: 'history/google.png' })
+  @ApiProperty({ example: 'history/google.png', required: false })
+  @IsOptional()
   @IsString()
-  readonly imageSrc: string;
+  readonly imageSrc?: string;
 }
 
 export class CreateExperienceWithFileDto extends CreateExperienceDto {

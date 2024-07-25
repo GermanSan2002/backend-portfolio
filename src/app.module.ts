@@ -12,6 +12,9 @@ import { UserModule } from './modules/user/user.module';
 import { ExperiencesModule } from './modules/experiences/experiences.module';
 import { Experience } from './modules/experiences/entity/experience.entity';
 import { ImagesModule } from './modules/images/images.module';
+import { SkillsModule } from './modules/skills/skills.module';
+import { Skills } from './modules/skills/entities/skill.entity';
+import { ProyectsModule } from './modules/proyects/proyects.module';
 
 @Module({
   imports: [
@@ -20,12 +23,14 @@ import { ImagesModule } from './modules/images/images.module';
       envFilePath: '.env', // Especifica la ruta al archivo .env
     }),
     TypeOrmModule.forRoot({ ...DataSourceConfig }),
-    TypeOrmModule.forFeature([User, Operation, Experience]),
+    TypeOrmModule.forFeature([User, Operation, Experience, Skills]),
     UserModule,
     AuthModule,
     MailModule,
     ExperiencesModule,
     ImagesModule,
+    SkillsModule,
+    ProyectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
