@@ -11,6 +11,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { UserModule } from './modules/user/user.module';
 import { ExperiencesModule } from './modules/experiences/experiences.module';
 import { Experience } from './modules/experiences/entity/experience.entity';
+import { ImagesModule } from './modules/images/images.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { Experience } from './modules/experiences/entity/experience.entity';
     AuthModule,
     MailModule,
     ExperiencesModule,
+    ImagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

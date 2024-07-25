@@ -24,6 +24,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateExperienceWithFileDto } from './dto/create-experience.dto';
 import { AuthService } from '../auth/auth.service';
 import { UpdateExperienceWithFileDto } from './dto/update-experience.dto';
+import { ImagesService } from '../images/images.service';
 
 @ApiTags('experiences')
 @Controller('experiences')
@@ -31,6 +32,7 @@ export class ExperiencesController {
   constructor(
     private readonly experiencesService: ExperiencesService,
     private readonly authService: AuthService,
+    private readonly imagesService: ImagesService,
   ) {}
 
   @Get()
@@ -82,7 +84,7 @@ export class ExperiencesController {
       throw new UnauthorizedException('Invalid token');
     }
 
-    const fileUrl = await this.experiencesService.uploadFile(file);
+    const fileUrl = await this.imagesService.uploadFile(file);
     return this.experiencesService.create(createExperienceDto, fileUrl);
   }
 
@@ -116,7 +118,7 @@ export class ExperiencesController {
 
     let fileUrl: string;
     if (file) {
-      fileUrl = await this.experiencesService.uploadFile(file);
+      fileUrl = await this.imagesService.uploadFile(file);
     }
 
     const experience = await this.experiencesService.update(
