@@ -15,6 +15,7 @@ import { ImagesModule } from './modules/images/images.module';
 import { SkillsModule } from './modules/skills/skills.module';
 import { Skills } from './modules/skills/entities/skill.entity';
 import { ProyectsModule } from './modules/proyects/proyects.module';
+import { Proyect } from './modules/proyects/entity/proyect.entity';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { ProyectsModule } from './modules/proyects/proyects.module';
       envFilePath: '.env', // Especifica la ruta al archivo .env
     }),
     TypeOrmModule.forRoot({ ...DataSourceConfig }),
-    TypeOrmModule.forFeature([User, Operation, Experience, Skills]),
+    TypeOrmModule.forFeature([User, Operation, Experience, Skills, Proyect]),
     UserModule,
     AuthModule,
     MailModule,
