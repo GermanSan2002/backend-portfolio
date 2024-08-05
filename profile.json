@@ -1,0 +1,6 @@
+{
+  "nombre": "string",
+  "apellido": "string",
+  "description": "Mi nueva descripcion",
+  "imageUrl": "https://firebasestorage.googleapis.com/v0/b/portfolio-backend-dbd75.appspot.com/o/images%2Fb5fbff56-884e-4ba1-b537-531baf510b40-WIN_20240730_10_37_38_Pro.jpg?alt=media&token=304dd80c-f717-4340-b667-94ebc98bad38"
+}

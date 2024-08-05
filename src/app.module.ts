@@ -16,6 +16,7 @@ import { SkillsModule } from './modules/skills/skills.module';
 import { Skills } from './modules/skills/entities/skill.entity';
 import { ProyectsModule } from './modules/proyects/proyects.module';
 import { Proyect } from './modules/proyects/entity/proyect.entity';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { Proyect } from './modules/proyects/entity/proyect.entity';
     ImagesModule,
     SkillsModule,
     ProyectsModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
