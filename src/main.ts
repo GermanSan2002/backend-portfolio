@@ -11,18 +11,20 @@ async function bootstrap() {
   app.enableCors(CORS);
   app.setGlobalPrefix('api/v1');
 
-  const config = new DocumentBuilder()
-    .setTitle('Portfolio API')
-    .setDescription('API documentation for the portfolio project')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document);
-
   const configService = app.get(ConfigService);
   const PORT = configService.get<number>('PORT');
   const NODE_ENV = configService.get<string>('NODE_ENV');
+
+  if (NODE_ENV == 'development') {
+    const config = new DocumentBuilder()
+      .setTitle('Portfolio API')
+      .setDescription('API documentation for the portfolio project')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('swagger', app, document);
+  }
 
   await app.listen(PORT).then(() => {
     Logger.log(`Running on port: ${PORT}`, NestApplication.name);
