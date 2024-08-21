@@ -22,7 +22,9 @@ export class UserService {
     private readonly configService: ConfigService,
   ) {}
 
-  async loginUsuario(credentialsDTO: CredentialsDTO): Promise<string> {
+  async loginUsuario(
+    credentialsDTO: CredentialsDTO,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password } = credentialsDTO;
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
@@ -37,8 +39,9 @@ export class UserService {
       throw new NotFoundException('Invalid email or password');
     }
 
-    const token = this.authService.generateToken(user.id);
-    return token;
+    const accessToken = this.authService.generateToken(user.id);
+    const refreshToken = this.authService.generateRefreshToken(user.id);
+    return { accessToken, refreshToken };
   }
 
   async crearUsuario(credentialsDTO: CredentialsDTO): Promise<UserDTO> {

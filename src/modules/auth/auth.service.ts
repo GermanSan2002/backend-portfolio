@@ -7,6 +7,7 @@ dotenv.config();
 
 const saltRounds = parseInt(process.env.HASH_SALT_ROUNDS || '10', 10);
 const jwtSecret = process.env.JWT_SECRET;
+const refreshSecret = process.env.JWT_SECRET;
 
 if (!jwtSecret) {
   throw new Error('JWT_SECRET is not defined in the environment variables');
@@ -32,9 +33,17 @@ export class AuthService {
     return jwt.sign({ userId }, jwtSecret, { expiresIn: '1h' });
   }
 
-  verifyToken(token: string): { userId: string } {
-    if (!jwtSecret) {
-      throw new Error('JWT_SECRET is not defined');
+  generateRefreshToken(userId: string): string {
+    if (!refreshSecret) {
+      throw new Error('REFRESH_SECRET is not defined');
+    }
+    return jwt.sign({ userId }, refreshSecret, { expiresIn: '7d' }); // Refrescar el token cada 7 días
+  }
+
+  verifyToken(token: string, isRefreshToken = false): { userId: string } {
+    const secret = isRefreshToken ? refreshSecret : jwtSecret;
+    if (!secret) {
+      throw new Error('SECRET is not defined');
     }
     try {
       const decodedToken = jwt.verify(token, jwtSecret);

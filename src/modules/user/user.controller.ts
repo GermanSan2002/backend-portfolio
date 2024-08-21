@@ -19,11 +19,15 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
+import { AuthService } from '../auth/auth.service';
 
 @ApiTags('users')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('login')
   @ApiBody({ type: CredentialsDTO })
@@ -145,6 +149,23 @@ export class UserController {
       } else {
         res.status(500).json({ message: 'Unknown error occurred' });
       }
+    }
+  }
+
+  @Post('refresh')
+  @ApiBody({ type: String, description: 'Refresh token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed.' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token.' })
+  async refresh(
+    @Body('refreshToken') refreshToken: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const decoded = this.authService.verifyToken(refreshToken, true); // Verificar usando el refresh token
+      const newAccessToken = this.authService.generateToken(decoded.userId);
+      res.status(200).json({ accessToken: newAccessToken });
+    } catch (error) {
+      res.status(401).json({ message: 'Invalid refresh token' });
     }
   }
 }
