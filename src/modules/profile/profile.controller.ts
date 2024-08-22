@@ -81,6 +81,7 @@ export class ProfileController {
       createProfileWithFileDto.nombre,
       createProfileWithFileDto.apellido,
       createProfileWithFileDto.description,
+      createProfileWithFileDto.aboutme,
       fileUrl,
     );
 

@@ -5,6 +5,7 @@ import { Operation } from 'src/modules/user/entities/operation.entity';
 import { Experience } from 'src/modules/experiences/entity/experience.entity';
 import { Skills } from 'src/modules/skills/entities/skill.entity';
 import { Proyect } from 'src/modules/proyects/entity/proyect.entity';
+import { Education } from 'src/modules/education/entity/education.entity';
 
 ConfigModule.forRoot({
   envFilePath: ['.env'],
@@ -19,7 +20,7 @@ export const DataSourceConfig: DataSourceOptions = {
   username: configService.get<string>('DB_USERNAME'),
   password: configService.get<string>('DB_PASSWORD'),
   database: configService.get<string>('DB_DATABASE'),
-  entities: [User, Operation, Experience, Skills, Proyect],
+  entities: [User, Operation, Experience, Skills, Proyect, Education],
   synchronize: true,
 };
 

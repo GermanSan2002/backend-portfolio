@@ -10,6 +10,7 @@ This is a backend portfolio project built with NestJS. It provides functionaliti
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
+- [Token Refresh Handling](#token-refresh-handling)
 
 ## Features
 - User authentication and authorization.
@@ -80,505 +81,100 @@ This is a backend portfolio project built with NestJS. It provides functionaliti
 
 ```plaintext
 backend-portfolio/
+│
 ├── src/
-│   ├── app.controller.spec.ts
 │   ├── app.controller.ts
 │   ├── app.module.ts
 │   ├── app.service.ts
 │   ├── main.ts
 │   ├── common/
-│   │   ├── decorators/
-│   │   └── interfaces/
-│   ├── constants/
-│   ├── database/
-│   ├── firebase/
 │   ├── modules/
-│   │   ├── auth/
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── auth.module.ts
-│   │   │   ├── auth.service.ts
-│   │   │   ├── dto/
-│   │   │   └── entities/
-│   │   ├── projects/
-│   │   │   ├── projects.controller.ts
-│   │   │   ├── projects.module.ts
-│   │   │   ├── projects.service.ts
-│   │   │   ├── dto/
-│   │   │   └── entities/
-│   │   ├── skills/
-│   │   │   ├── skills.controller.ts
-│   │   │   ├── skills.module.ts
-│   │   │   ├── skills.service.ts
-│   │   │   ├── dto/
-│   │   │   └── entities/
-│   │   └── user/
-│   │       ├── user.controller.ts
-│   │       ├── user.module.ts
-│   │       ├── user.service.ts
-│   │       ├── dto/
-│   │       └── entities/
-│   ├── utils/
-│   │   ├── error.manager.ts
-│   │   └── password/
-│   │       └── index.ts
+│   ├── database/
+│   └── ...
 ├── test/
-│   ├── app.e2e-spec.ts
-│   └── jest-e2e.json
 ├── .eslintrc.js
 ├── .gitignore
 ├── .prettierrc
-├── README.md
 ├── nest-cli.json
 ├── package-lock.json
 ├── package.json
-├── profile.json
 ├── tsconfig.build.json
 └── tsconfig.json
 ```
 
 ## Usage
 
-### Authentication
+This section would typically include details about the API endpoints, how to interact with the backend, and any specific instructions or examples.
 
-#### Register
-- **Endpoint**: `POST /auth/register`
-- **Description**: Registers a new user.
-- **Request Body**:
-    ```json
-    {
-      "username": "string",
-      "email": "string",
-      "password": "string"
-    }
-    ```
-- **Response**:
-    - **201 Created**:
-      ```json
-      {
-        "id": "string",
-        "username": "string",
-        "email": "string",
-        "createdAt": "string",
-        "updatedAt": "string"
-      }
-      ```
-    - **400 Bad Request**:
-      ```json
-      {
-        "statusCode": 400,
-        "message": "Validation error details",
-        "error": "Bad Request"
-      }
-      ```
+## Token Refresh Handling
 
-#### Login
-- **Endpoint**: `POST /auth/login`
-- **Description**: Logs in an existing user.
-- **Request Body**:
-    ```json
-    {
-      "email": "string",
-      "password": "string"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      {
-        "accessToken": "string"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
+### Authentication and Token Issuance
+When a user logs in, they receive both an access token and a refresh token. The access token has a limited lifespan, while the refresh token is used to obtain a new access token without needing to re-enter credentials.
 
-### Users
+**Login Endpoint:**
+```typescript
+async loginUsuario(
+  credentialsDTO: CredentialsDTO,
+): Promise<{ accessToken: string; refreshToken: string }> {
+  const { email, password } = credentialsDTO;
+  const user = await this.userRepository.findOneBy({ email });
+  if (!user) {
+    throw new NotFoundException('Invalid email or password');
+  }
 
-#### Get User Profile
-- **Endpoint**: `GET /user/profile`
-- **Description**: Retrieves the profile of the logged-in user.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      {
-        "id": "string",
-        "username": "string",
-        "email": "string",
-        "createdAt": "string",
-        "updatedAt": "string"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
+  const isPasswordValid = await this.authService.comparePassword(
+    password,
+    user.password,
+  );
+  if (!isPasswordValid) {
+    throw new NotFoundException('Invalid email or password');
+  }
 
-#### Update User Profile
-- **Endpoint**: `PUT /user/profile`
-- **Description**: Updates the profile of the logged-in user.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Request Body**:
-    ```json
-    {
-      "username": "string",
-      "email": "string"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      {
-        "id": "string",
-        "username": "string",
-        "email": "string",
-        "createdAt": "string",
-        "updatedAt": "string"
-      }
-      ```
-    - **400 Bad Request**:
-      ```json
-      {
-        "statusCode": 400,
-        "message": "Validation error details",
-        "error": "Bad Request"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
+  const accessToken = this.authService.generateToken(user.id);
+  const refreshToken = this.authService.generateRefreshToken(user.id);
+  return { accessToken, refreshToken };
+}
+```
 
-### Projects
+### Refreshing Tokens
+The refresh endpoint allows users to obtain a new access token using the refresh token.
 
-#### Create Project
-- **Endpoint**: `POST /projects`
-- **Description**: Creates a new project.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Request Body**:
-    ```json
-    {
-      "title": "string",
-      "description": "string"
-    }
-    ```
-- **Response**:
-    - **201 Created**:
-      ```json
-      {
-        "id": "string",
-        "title": "string",
-        "description": "string",
-        "createdAt": "string",
-        "updatedAt": "string"
-      }
-      ```
-    - **400 Bad Request**:
-      ```json
-      {
-        "statusCode": 400,
-        "message": "Validation error details",
-        "error": "Bad Request"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
+**Refresh Token Endpoint:**
+```typescript
+@Post('refresh')
+@ApiBody({ type: String, description: 'Refresh token' })
+@ApiResponse({ status: 200, description: 'Token refreshed.' })
+@ApiResponse({ status: 401, description: 'Invalid refresh token.' })
+async refresh(
+  @Body('refreshToken') refreshToken: string,
+  @Res() res: Response,
+) {
+  try {
+    const decoded = this.authService.verifyToken(refreshToken, true); // Verify using the refresh token
+    const newAccessToken = this.authService.generateToken(decoded.userId);
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid refresh token' });
+  }
+}
+```
 
-#### Get Projects
-- **Endpoint**: `GET /projects`
-- **Description**: Retrieves all projects.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      [
-        {
-          "id": "string",
-          "title": "string",
-          "description": "string",
-          "createdAt": "string",
-          "updatedAt": "string"
-        }
-      ]
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message":
+### Instructions for Use
+1. **Login:**
+   - Make a POST request to the login endpoint with user credentials.
+   - You will receive both an `accessToken` and a `refreshToken`.
 
- "Unauthorized"
-      }
-      ```
-
-#### Update Project
-- **Endpoint**: `PUT /projects/:id`
-- **Description**: Updates an existing project.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Request Body**:
-    ```json
-    {
-      "title": "string",
-      "description": "string"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      {
-        "id": "string",
-        "title": "string",
-        "description": "string",
-        "createdAt": "string",
-        "updatedAt": "string"
-      }
-      ```
-    - **400 Bad Request**:
-      ```json
-      {
-        "statusCode": 400,
-        "message": "Validation error details",
-        "error": "Bad Request"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
-
-#### Delete Project
-- **Endpoint**: `DELETE /projects/:id`
-- **Description**: Deletes an existing project.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      {
-        "message": "Project deleted successfully"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
-    - **404 Not Found**:
-      ```json
-      {
-        "statusCode": 404,
-        "message": "Project not found",
-        "error": "Not Found"
-      }
-      ```
-
-### Skills
-
-#### Create Skill
-- **Endpoint**: `POST /skills`
-- **Description**: Creates a new skill.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Request Body**:
-    ```json
-    {
-      "name": "string",
-      "level": "number"
-    }
-    ```
-- **Response**:
-    - **201 Created**:
-      ```json
-      {
-        "id": "string",
-        "name": "string",
-        "level": "number",
-        "createdAt": "string",
-        "updatedAt": "string"
-      }
-      ```
-    - **400 Bad Request**:
-      ```json
-      {
-        "statusCode": 400,
-        "message": "Validation error details",
-        "error": "Bad Request"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
-
-#### Get Skills
-- **Endpoint**: `GET /skills`
-- **Description**: Retrieves all skills.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      [
-        {
-          "id": "string",
-          "name": "string",
-          "level": "number",
-          "createdAt": "string",
-          "updatedAt": "string"
-        }
-      ]
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
-
-#### Update Skill
-- **Endpoint**: `PUT /skills/:id`
-- **Description**: Updates an existing skill.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Request Body**:
-    ```json
-    {
-      "name": "string",
-      "level": "number"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      {
-        "id": "string",
-        "name": "string",
-        "level": "number",
-        "createdAt": "string",
-        "updatedAt": "string"
-      }
-      ```
-    - **400 Bad Request**:
-      ```json
-      {
-        "statusCode": 400,
-        "message": "Validation error details",
-        "error": "Bad Request"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
-
-#### Delete Skill
-- **Endpoint**: `DELETE /skills/:id`
-- **Description**: Deletes an existing skill.
-- **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer <accessToken>"
-    }
-    ```
-- **Response**:
-    - **200 OK**:
-      ```json
-      {
-        "message": "Skill deleted successfully"
-      }
-      ```
-    - **401 Unauthorized**:
-      ```json
-      {
-        "statusCode": 401,
-        "message": "Unauthorized"
-      }
-      ```
-    - **404 Not Found**:
-      ```json
-      {
-        "statusCode": 404,
-        "message": "Skill not found",
-        "error": "Not Found"
-      }
-      ```
+2. **Refresh Access Token:**
+   - Make a POST request to the `/refresh` endpoint with the `refreshToken`.
+   - If the `refreshToken` is valid, you will receive a new `accessToken`.
 
 ## Contributing
 
-1. Fork the repository.
-2. Create a new branch: `git checkout -b my-new-feature`.
-3. Commit your changes: `git commit -m 'Add some feature'`.
-4. Push to the branch: `git push origin my-new-feature`.
-5. Submit a pull request.
+This section would include guidelines for contributing to the project, if applicable.
 
 ## License
 
-This project is licensed under the MIT License.
+Include licensing information for your project.
+```
+
+Puedes copiar este contenido directamente en tu `README.md`. Si necesitas hacer más ajustes o tienes preguntas adicionales, estoy aquí para ayudarte.

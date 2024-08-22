@@ -11,18 +11,23 @@ export class UpdateProfileDto {
   description?: string;
 
   @ApiProperty()
+  aboutme?: string;
+
+  @ApiProperty()
   imageUrl?: string;
 
   constructor(
     nombre?: string,
     apellido?: string,
     description?: string,
+    aboutme?: string,
     imageUrl?: string,
   ) {
     this.nombre = nombre;
     this.apellido = apellido;
     this.description = description;
     this.imageUrl = imageUrl;
+    this.aboutme = aboutme;
   }
 }
 

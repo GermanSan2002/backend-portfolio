@@ -12,9 +12,10 @@ export class ProfileService {
   constructor(private readonly imagesService: ImagesService) {}
 
   async create(createProfileDto: CreateProfileDto): Promise<any> {
-    const { nombre, apellido, description, imageUrl } = createProfileDto;
+    const { nombre, apellido, description, imageUrl, aboutme } =
+      createProfileDto;
 
-    const profile = { nombre, apellido, description, imageUrl };
+    const profile = { nombre, apellido, description, aboutme, imageUrl };
     this.saveProfileToFile(profile);
     return profile;
   }
@@ -41,12 +42,14 @@ export class ProfileService {
       throw new NotFoundException('Profile not found');
     }
 
-    const { nombre, apellido, description, imageUrl } = updateProfileDto;
+    const { nombre, apellido, description, imageUrl, aboutme } =
+      updateProfileDto;
 
     profile.nombre = nombre ?? profile.nombre;
     profile.apellido = apellido ?? profile.apellido;
     profile.description = description ?? profile.description;
     profile.description = imageUrl ?? profile.description;
+    profile.aboutme = aboutme ?? profile.aboutme;
 
     this.saveProfileToFile(profile);
     return profile;

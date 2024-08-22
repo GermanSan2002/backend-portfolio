@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ImagesService } from '../images/images.service';
 import { Skills } from './entities/skill.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
@@ -15,7 +14,6 @@ export class SkillsService {
   constructor(
     @InjectRepository(Skills)
     private readonly skillsRepository: Repository<Skills>,
-    private readonly imagesService: ImagesService,
   ) {}
 
   async findAll(): Promise<Skills[]> {
@@ -23,23 +21,19 @@ export class SkillsService {
   }
 
   async findOne(id: string): Promise<Skills> {
-    const experience = await this.skillsRepository.findOne({
+    const skill = await this.skillsRepository.findOne({
       where: { id },
     });
-    if (!experience) {
-      throw new NotFoundException(`Experience with ID "${id}" not found`);
+    if (!skill) {
+      throw new NotFoundException(`skill with ID "${id}" not found`);
     }
-    return experience;
+    return skill;
   }
 
-  async create(
-    createSkillDto: CreateSkillDto,
-    fileUrl: string,
-  ): Promise<Skills> {
+  async create(createSkillDto: CreateSkillDto): Promise<Skills> {
     try {
       const experience = this.skillsRepository.create({
         ...createSkillDto,
-        imageSrc: fileUrl,
       });
       return await this.skillsRepository.save(experience);
     } catch (error) {
@@ -48,17 +42,8 @@ export class SkillsService {
     }
   }
 
-  async update(
-    id: string,
-    updateSkillDto: UpdateSkillDto,
-    fileUrl?: string,
-  ): Promise<Skills> {
+  async update(id: string, updateSkillDto: UpdateSkillDto): Promise<Skills> {
     const skill = await this.findOne(id);
-
-    if (fileUrl && skill.imageSrc) {
-      await this.imagesService.deleteFile(skill.imageSrc);
-      skill.imageSrc = fileUrl;
-    }
 
     Object.assign(skill, updateSkillDto);
     await this.skillsRepository.save(skill);
@@ -67,9 +52,6 @@ export class SkillsService {
 
   async remove(id: string): Promise<void> {
     const skill = await this.findOne(id);
-    if (skill.imageSrc) {
-      await this.imagesService.deleteFile(skill.imageSrc);
-    }
     await this.skillsRepository.remove(skill);
   }
 }

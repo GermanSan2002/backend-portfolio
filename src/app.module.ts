@@ -17,6 +17,8 @@ import { Skills } from './modules/skills/entities/skill.entity';
 import { ProyectsModule } from './modules/proyects/proyects.module';
 import { Proyect } from './modules/proyects/entity/proyect.entity';
 import { ProfileModule } from './modules/profile/profile.module';
+import { Education } from './modules/education/entity/education.entity';
+import { EducationModule } from './modules/education/education.module';
 
 @Module({
   imports: [
@@ -25,7 +27,14 @@ import { ProfileModule } from './modules/profile/profile.module';
       envFilePath: '.env', // Especifica la ruta al archivo .env
     }),
     TypeOrmModule.forRoot({ ...DataSourceConfig }),
-    TypeOrmModule.forFeature([User, Operation, Experience, Skills, Proyect]),
+    TypeOrmModule.forFeature([
+      User,
+      Operation,
+      Experience,
+      Skills,
+      Proyect,
+      Education,
+    ]),
     UserModule,
     AuthModule,
     MailModule,
@@ -34,6 +43,7 @@ import { ProfileModule } from './modules/profile/profile.module';
     SkillsModule,
     ProyectsModule,
     ProfileModule,
+    EducationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

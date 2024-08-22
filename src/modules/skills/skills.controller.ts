@@ -6,31 +6,30 @@ import {
   Post,
   Headers,
   UnauthorizedException,
-  UploadedFile,
-  UseInterceptors,
   Patch,
   Delete,
 } from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { AuthService } from '../auth/auth.service';
-import { ImagesService } from '../images/images.service';
 import { Skills } from './entities/skill.entity';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConsumes,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { CreateSkillWithFileDto } from './dto/create-skill.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { UpdateSkillWithFileDto } from './dto/update-skill.dto';
+import { CreateSkillDto } from './dto/create-skill.dto';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 
+@ApiTags('skills')
 @Controller('skills')
 export class SkillsController {
   constructor(
     private readonly skillsService: SkillsService,
     private readonly authService: AuthService,
-    private readonly imagesService: ImagesService,
   ) {}
 
   @Get()
@@ -56,38 +55,34 @@ export class SkillsController {
     return this.skillsService.findOne(id);
   }
 
-  @Post()
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new skill' })
-  @ApiBearerAuth()
+  @ApiHeader({ name: 'authorization', description: 'Bearer token' })
+  @ApiBody({ type: CreateSkillDto })
   @ApiResponse({
     status: 201,
     description: 'The skill has been successfully created.',
-    type: Skills,
   })
-  async create(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() createSkillDto: CreateSkillWithFileDto,
+  @Post()
+  async createNote(
+    @Body() createNoteDto: CreateSkillDto,
     @Headers('authorization') authorization: string,
-  ) {
+  ): Promise<Skills> {
     if (!authorization) {
       throw new UnauthorizedException('Authorization header is missing');
     }
 
     const token = authorization.replace('Bearer ', '');
-    const decoded = await this.authService.verifyToken(token);
+
+    const decoded = await this.authService.verifyToken(token, false);
 
     if (!decoded) {
       throw new UnauthorizedException('Invalid token');
     }
 
-    const fileUrl = await this.imagesService.uploadFile(file);
-    return this.skillsService.create(createSkillDto, fileUrl);
+    return this.skillsService.create(createNoteDto);
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Update skill by id' })
   @ApiBearerAuth()
@@ -99,8 +94,7 @@ export class SkillsController {
   @ApiResponse({ status: 404, description: 'Skill not found.' })
   async update(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Body() updateSkillDto: UpdateSkillWithFileDto,
+    @Body() updateSkillDto: UpdateSkillDto,
     @Headers('authorization') authorization: string,
   ) {
     if (!authorization) {
@@ -114,12 +108,7 @@ export class SkillsController {
       throw new UnauthorizedException('Invalid token');
     }
 
-    let fileUrl: string;
-    if (file) {
-      fileUrl = await this.imagesService.uploadFile(file);
-    }
-
-    const skill = await this.skillsService.update(id, updateSkillDto, fileUrl);
+    const skill = await this.skillsService.update(id, updateSkillDto);
     return skill;
   }
 
